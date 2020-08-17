@@ -12,4 +12,5 @@ module.exports = app => {
   router.post('/register', controller.register.index);
   router.get('/user/getcode', controller.user.getCode);
   router.get('/getList',jwt, controller.getList.index);
+  router.post('/upload', controller.upload.index);
 };
