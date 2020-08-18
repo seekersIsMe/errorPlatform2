@@ -28,10 +28,10 @@ class TestPlugin {
       });
     }
   }
-  sendMapFile (stats) {
+  async sendMapFile (stats) {
     let list = glob.sync(path.join(stats.compilation.outputOptions.path, `./**/*.{js.map,}`))
     for(let filePath in list) {
-      this.uploadFile(filePath) 
+      await this.uploadFile(filePath) 
     }
   }
 
