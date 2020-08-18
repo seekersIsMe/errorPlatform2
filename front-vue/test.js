@@ -9,6 +9,7 @@ const req = http.request('http://localhost:7001/upload', {
     }
   })
 //   https://blog.csdn.net/weixin_33862041/article/details/88709520
+// https://segmentfault.com/q/1010000009994341/a-1020000009995696
   const readStream = fs.createReadStream('E:/errorPlatform2/front-vue/dist/static/js/manifest.2ae2e69a05c33dfc65f8.js.map')
   readStream.on('data', chunk =>{
     req.write(chunk)
