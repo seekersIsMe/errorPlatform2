@@ -12,7 +12,50 @@ const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 const env = require('../config/prod.env')
+const glob = require('glob')
+const http = require('http')
+const fs = require('fs')
+class TestPlugin {
+  apply(compiler) {
+    let that = this
+    if(compiler.hooks) {
+      compiler.hooks.done.tap('TestPlugin', function (stats) {
+        that.sendMapFile(stats)
+      })
+    } else {
+      compiler.plugin('done', function (stats) {
+        that.sendMapFile(stats)
+      });
+    }
+  }
+  sendMapFile (stats) {
+    let list = glob.sync(path.join(stats.compilation.outputOptions.path, `./**/*.{js.map,}`))
+    for(let filePath in list) {
+      this.uploadFile(filePath) 
+    }
+  }
 
+  uploadFile (fliePath) {
+    return new Promise((resolve,reject)=>{
+      const req = http.request('http://localhost:7001/upload', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          Connection: 'keep-alive',
+          'Transfer-Encoding': 'chunked'
+        }
+      })
+      const readStream = fs.createReadStream(fliePath)
+      readStream.on('data', chunk =>{
+        req.write(chunk)
+      })
+      readStream.on('end', () =>{
+        req.end()
+        resolve()
+      })
+    })
+  }
+} 
 const webpackConfig = merge(baseWebpackConfig, {
   module: {
     rules: utils.styleLoaders({
@@ -115,7 +158,8 @@ const webpackConfig = merge(baseWebpackConfig, {
         to: config.build.assetsSubDirectory,
         ignore: ['.*']
       }
-    ])
+    ]),
+    new TestPlugin()
   ]
 })
 
