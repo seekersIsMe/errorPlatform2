@@ -10,7 +10,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
-
+// https://segmentfault.com/a/1190000015678039
 const env = require('../config/prod.env')
 const glob = require('glob')
 const http = require('http')
@@ -23,24 +23,26 @@ class TestPlugin {
         that.sendMapFile(stats)
       })
     } else {
-      compiler.plugin('done', function (stats) {
+      compiler.plugin('done', (stats) =>{
         that.sendMapFile(stats)
       });
     }
   }
   async sendMapFile (stats) {
     let list = glob.sync(path.join(stats.compilation.outputOptions.path, `./**/*.{js.map,}`))
-    for(let filePath in list) {
-      await this.uploadFile(filePath) 
-    }
+    console.log('列表',list)
+    list.forEach(filePath =>{
+        this.uploadFile(filePath) 
+    })
   }
 
   uploadFile (fliePath) {
+    console.log('路径', fliePath)
     return new Promise((resolve,reject)=>{
       const req = http.request('http://localhost:7001/upload', {
         method: 'post',
         headers: {
-          'Content-Type': 'application/octet-stream',
+          'Content-Type': 'multipart/form-data',
           Connection: 'keep-alive',
           'Transfer-Encoding': 'chunked'
         }

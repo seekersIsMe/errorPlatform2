@@ -47,6 +47,12 @@ module.exports = appInfo => {
         options:{}
       }
     },
+    multipart: {
+      fileExtensions: [
+        '.txt',
+        '.map',
+      ],
+    },
     // 关闭csrf防御
     security: {
       csrf: {

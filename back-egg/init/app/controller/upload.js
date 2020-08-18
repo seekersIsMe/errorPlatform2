@@ -7,9 +7,10 @@ const { rejects } = require('assert');
 class UploadController extends Controller {
   async index() {
     const { ctx } = this;
+    console.log('请求头',ctx.header)
     const stream = await ctx.getFileStream()
     let fileName = stream.filename
-    console.log('文件信息', stream)
+    // console.log('文件信息', stream)
     let target = path.resolve(__dirname, '../public', fileName)
     let result = await new Promise((resolve,reject) =>{
          // 创建写入流
