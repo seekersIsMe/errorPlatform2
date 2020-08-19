@@ -15,6 +15,7 @@ const env = require('../config/prod.env')
 const glob = require('glob')
 const http = require('http')
 const fs = require('fs')
+const rq = require('request')
 class TestPlugin {
   apply(compiler) {
     let that = this
@@ -28,36 +29,87 @@ class TestPlugin {
       });
     }
   }
-  async sendMapFile (stats) {
+  sendMapFile (stats) {
     let list = glob.sync(path.join(stats.compilation.outputOptions.path, `./**/*.{js.map,}`))
     console.log('列表',list)
-    list.forEach(filePath =>{
-        this.uploadFile(filePath) 
-    })
+    this.uploadFile(list) 
   }
 
-  uploadFile (fliePath) {
-    console.log('路径', fliePath)
-    return new Promise((resolve,reject)=>{
-      const req = http.request('http://localhost:7001/upload', {
-        method: 'post',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Connection: 'keep-alive',
-          'Transfer-Encoding': 'chunked'
-        }
-      })
-      const readStream = fs.createReadStream(fliePath)
-      readStream.on('data', chunk =>{
-        req.write(chunk)
-      })
-      readStream.on('end', () =>{
-        req.end()
-        resolve()
-      })
+  uploadFile (list) {
+    let promiseList = []
+    list.forEach(filePath =>{
+      let formData ={}
+      promiseList.push(
+        new Promise ((resolve, reject)=>{
+          formData[path.basename(filePath)] = fs.createReadStream(filePath)
+          rq.post({
+            url: 'http://localhost:7001/upload',
+            formData
+          }, (err, httpResponse, body) =>{
+            console.log('错误', err)
+            if(err) {
+              console.log('上传失败')
+              reject()
+            } else {
+              console.log('上传成功') 
+              resolve()
+            }
+          })
+        })
+      )
+    })
+    Promise.all(promiseList).then(res =>{
+      console.log('全部发射成功')
     })
   }
 } 
+// https://www.cnblogs.com/haogj/p/5649670.html html-webpack-plugin
+/**
+ * template html模板代码
+ */
+class AddCodeIntoHtml {
+  constructor (option){
+    this.option = option
+  }
+  apply(compiler) {
+    let that = this
+    if(compiler.hooks) {
+      compiler.hooks.compilation.tap('TestPlugin', function (compilation) {
+        if(HtmlWebpackPlugin.getHooks) { // 新版本的
+          HtmlWebpackPlugin.getHooks(compilation).afterTemplateExecution .tapAsync('Myplugin', (data, cb) =>{
+            let htmlList =  data.html.split('</body>')
+            data.html = htmlList[0] + `${that.option.template|| ''}</body>` + htmlList[1]
+            cb(null, data)
+          })
+        } else {
+          compilation.plugin('html-webpack-plugin-after-html-processing', function(data, callback) {
+            console.log('html插件数据',data)
+            let htmlList =  data.html.split('</body>')
+            data.html = htmlList[0] + `${that.option.template|| ''}</body>` + htmlList[1]
+            callback(null, data);
+          });
+        }
+      })
+    } else {
+      compiler.plugin('compilation', (compilation) =>{
+        if(HtmlWebpackPlugin.getHooks) { // 新版本的
+          HtmlWebpackPlugin.getHooks(compilation).afterTemplateExecution .tapAsync('Myplugin', (data, cb) =>{
+            let htmlList =  data.html.split('</body>')
+            data.html = htmlList[0] + `${that.option.template|| ''}</body>` + htmlList[1]
+            cb(null, data)
+          })
+        } else {
+          compilation.plugin('html-webpack-plugin-after-html-processing', function(data, callback) {
+            console.log('html插件数据',data)
+            let htmlList =  data.html.split('</body>')
+            data.html = htmlList[0] + `${that.option.template|| ''}</body>` + htmlList[1]
+            callback(null, data);
+          });
+        }
+      });
+    }
+  }
+}
 const webpackConfig = merge(baseWebpackConfig, {
   module: {
     rules: utils.styleLoaders({
@@ -118,6 +170,9 @@ const webpackConfig = merge(baseWebpackConfig, {
       },
       // necessary to consistently work with multiple chunks via CommonsChunkPlugin
       chunksSortMode: 'dependency'
+    }),
+    new AddCodeIntoHtml({
+      template: `<script>console.log('哈哈哈哈')</script>`
     }),
     // keep module.id stable when vendor modules does not change
     new webpack.HashedModuleIdsPlugin(),

@@ -14,6 +14,9 @@
   <el-button size="small" type="primary">点击上传</el-button>
   <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
 </el-upload>
+<el-button @click="testClick">
+  点击
+</el-button>
   </div>
 </template>
 
@@ -25,6 +28,9 @@
       };
     },
     methods: {
+      testClick() {
+        console.log(someMethod)
+      },
       handleRemove(file, fileList) {
         console.log(file, fileList);
       },
