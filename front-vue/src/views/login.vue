@@ -12,7 +12,9 @@
                 </el-form-item>
                  <el-form-item label="验证码">
                     <el-input v-model="form.code"></el-input>
-                    <img :src="imgcodeSrc" @click="changCode" alt="">
+                    <div v-html="imgcodeSrc" @click="changCode">
+                    </div>
+                    <!-- <img :src="imgcodeSrc" @click="changCode" alt=""> -->
                 </el-form-item>
             </el-form>
         </el-col>
@@ -30,10 +32,13 @@ export default {
                 psw: '123456',
                 code: ''
             },
-            imgcodeSrc: '/api/user/getcode'
+            imgcodeSrc: ''
         }
     },
     created() {
+      this.axios.get('/user/getcode?' + 't=' + new Date().getTime()).then(res =>{
+          this.imgcodeSrc = res
+        })
     },
     methods: {
         async login() {
@@ -48,7 +53,9 @@ export default {
            }
         },
         changCode() {
-                this.imgcodeSrc = '/api/user/getcode?' + 't=' + new Date().getTime()
+                this.axios.get('/user/getcode?' + 't=' + new Date().getTime()).then(res =>{
+                    this.imgcodeSrc = res
+                })
             }
     }
 }

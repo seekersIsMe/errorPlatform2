@@ -24,12 +24,15 @@
   export default {
     data() {
       return {
-        fileList: []
+        fileList: [],
+        someMethod: {}
       };
     },
     methods: {
       testClick() {
-        console.log(someMethod)
+        this.someMethod.doahah.map(p =>{
+          console.log(p)
+        })
       },
       handleRemove(file, fileList) {
         console.log(file, fileList);

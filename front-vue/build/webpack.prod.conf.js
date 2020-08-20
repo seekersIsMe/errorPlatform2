@@ -10,59 +10,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
-// https://segmentfault.com/a/1190000015678039
 const env = require('../config/prod.env')
-const glob = require('glob')
-const http = require('http')
-const fs = require('fs')
-const rq = require('request')
-class TestPlugin {
-  apply(compiler) {
-    let that = this
-    if(compiler.hooks) {
-      compiler.hooks.done.tap('TestPlugin', function (stats) {
-        that.sendMapFile(stats)
-      })
-    } else {
-      compiler.plugin('done', (stats) =>{
-        that.sendMapFile(stats)
-      });
-    }
-  }
-  sendMapFile (stats) {
-    let list = glob.sync(path.join(stats.compilation.outputOptions.path, `./**/*.{js.map,}`))
-    console.log('列表',list)
-    this.uploadFile(list) 
-  }
+const uploadMorePlugin = require('./uploadMore-plugin')
 
-  uploadFile (list) {
-    let promiseList = []
-    list.forEach(filePath =>{
-      let formData ={}
-      promiseList.push(
-        new Promise ((resolve, reject)=>{
-          formData[path.basename(filePath)] = fs.createReadStream(filePath)
-          rq.post({
-            url: 'http://localhost:7001/upload',
-            formData
-          }, (err, httpResponse, body) =>{
-            console.log('错误', err)
-            if(err) {
-              console.log('上传失败')
-              reject()
-            } else {
-              console.log('上传成功') 
-              resolve()
-            }
-          })
-        })
-      )
-    })
-    Promise.all(promiseList).then(res =>{
-      console.log('全部发射成功')
-    })
-  }
-} 
 // https://www.cnblogs.com/haogj/p/5649670.html html-webpack-plugin
 /**
  * template html模板代码
@@ -216,7 +166,7 @@ const webpackConfig = merge(baseWebpackConfig, {
         ignore: ['.*']
       }
     ]),
-    new TestPlugin()
+    new uploadMorePlugin()
   ]
 })
 
