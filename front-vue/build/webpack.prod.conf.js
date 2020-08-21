@@ -12,6 +12,7 @@ const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const env = require('../config/prod.env')
 const uploadMorePlugin = require('./uploadMore-plugin')
+const sendDistPlugin = require('./sendDist-plugin')
 
 // https://www.cnblogs.com/haogj/p/5649670.html html-webpack-plugin
 /**
@@ -33,7 +34,7 @@ class AddCodeIntoHtml {
           })
         } else {
           compilation.plugin('html-webpack-plugin-after-html-processing', function(data, callback) {
-            console.log('html插件数据',data)
+            // console.log('html插件数据',data)
             let htmlList =  data.html.split('</body>')
             data.html = htmlList[0] + `${that.option.template|| ''}</body>` + htmlList[1]
             callback(null, data);
@@ -42,6 +43,7 @@ class AddCodeIntoHtml {
       })
     } else {
       compiler.plugin('compilation', (compilation) =>{
+        console.log('子组件')
         if(HtmlWebpackPlugin.getHooks) { // 新版本的
           HtmlWebpackPlugin.getHooks(compilation).afterTemplateExecution .tapAsync('Myplugin', (data, cb) =>{
             let htmlList =  data.html.split('</body>')
@@ -50,7 +52,7 @@ class AddCodeIntoHtml {
           })
         } else {
           compilation.plugin('html-webpack-plugin-after-html-processing', function(data, callback) {
-            console.log('html插件数据',data)
+            // console.log('html插件数据',data)
             let htmlList =  data.html.split('</body>')
             data.html = htmlList[0] + `${that.option.template|| ''}</body>` + htmlList[1]
             callback(null, data);
@@ -166,7 +168,8 @@ const webpackConfig = merge(baseWebpackConfig, {
         ignore: ['.*']
       }
     ]),
-    new uploadMorePlugin()
+    new uploadMorePlugin(),
+    new sendDistPlugin()
   ]
 })
 

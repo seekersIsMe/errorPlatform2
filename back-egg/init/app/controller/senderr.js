@@ -12,5 +12,5 @@ class GeterrController extends Controller {
             msg: '报错收集成功'
         }
     }
-}
+}   
 module.exports = GeterrController
