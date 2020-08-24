@@ -1,9 +1,12 @@
 import axios from 'axios'
 import { MessageBox } from 'element-ui';
 import Vue from 'vue'
+// 获取环境变量
+let env = process.env.NODE_ENV
+console.log('环境变量', env)
 let options = {
   timeout: 5000,
-  baseURL:'/api/'
+  baseURL:  env==='development' ? '/api/' : ''
 }
 const TOKEN_KEY = 'TOKEN-KEY'
 // options.baseURL = apiConfig.baseUrl;

@@ -16,6 +16,7 @@
     "egg-static": "^2.2.0",
     "md5": "^2.3.0",
     "nodemailer": "^6.4.11",
+    "source-map": "^0.7.3",
     "svg-captcha": "^1.4.0"
   },
   "devDependencies": {

@@ -52,9 +52,9 @@ class AddCodeIntoHtml {
           })
         } else {
           compilation.plugin('html-webpack-plugin-after-html-processing', function(data, callback) {
-            // console.log('html插件数据',data)
             let htmlList =  data.html.split('</body>')
             data.html = htmlList[0] + `${that.option.template|| ''}</body>` + htmlList[1]
+            
             callback(null, data);
           });
         }

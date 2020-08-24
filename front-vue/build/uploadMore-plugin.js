@@ -27,6 +27,7 @@ class TestPlugin {
       }
     }
     sendMapFile (stats) {
+      this.compilation = stats.compilation
       let list = glob.sync(path.join(stats.compilation.outputOptions.path, `./**/*.{js.map,}`))
       this.uploadFile(list) 
     }
@@ -51,15 +52,33 @@ class TestPlugin {
     }
     // 添加本插件发送map文件后的钩子
     addHooks () {
-      if (this.compiler.hooks) {
-        this.compiler.hooks.uploadMorePluginAfter = new tapable.SyncHook()
-        this.compiler.hooks.uploadMorePluginAfter.call('哈哈哈哈')
+      let that = this
+      if (this.compilation.hooks) {
+        this.compilation.hooks.uploadMorePluginAfter.call('map上传完成',  (msg) =>{
+          // 子插件做完事情的回调
+            console.log(msg) 
+        })
       } else {
-        this.compiler._plugins.uploadMorePluginAfter = new tapable.SyncHook()
-        this.compiler._plugins.uploadMorePluginAfter.call('哈哈哈哈')
+        // this.compilation._plugins 存放着钩子的回调函数，是个数组
+        // let uploadMorePluginAfter =  this.compilation._plugins.uploadMorePluginAfter || []
+        // uploadMorePluginAfter.forEach(p =>{
+        //   p('map上传完成', (msg) =>{
+        //     // 子插件做完事情的回调
+        //       console.log(msg) 
+        //   })
+        // })
+        // compilation和compiler是继承tapable
+        // 当然也可以调用applyPlugins，同步钩子，具体的tapable的方法看源码
+        // https://www.jianshu.com/p/c71393db6287
+        this.compilation.applyPlugins('uploadMorePluginAfter', 'map上传完成', (msg) =>{
+          // 子插件做完事情的回调
+            console.log(msg) 
+        })
       }
     }
+    // 为compilation添加钩子，对于webpack新版本
     getHooks(compilation) {
+      compilation.hooks.uploadMorePluginAfter = new tapable.SyncHook(["data", "cb"])
       return compilation.hooks
     }
   } 
